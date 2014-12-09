@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+#   Slideshared
+#   -----------
+#   Descarga secuencialmente un grupo de imagenes del sitio slideshared.net
+#
+#   Autor
+#   ------
+#   dissid3nt (@geekente)
+#
+scriptName="slideshared" # Nombre del script para mostrar en mensajes.
+
+# Exit codes
+ec_exitSuccess=0            # 0: El script se ejecuto correctamente.
+ec_noURL=1                  # 1: No se dio una URL.
+ec_invalidOption=2          # 2: Opcion invalida.
+ec_optionWithoutArgument=3  # 3: Opcion sin argumento:
+
+# Modos de escritura
+underline=$(tput smul)
+nounderline=$(tput rmul)
+
+usage()
+{
+    echo "Usage:"
+    echo -e "\t$scriptName [-h] -u ${underline}URL${nounderline} [-O ${underline}/download/path${nounderline}]"
+    echo "Options:"
+    echo -e "\tu -- Indicate the starting slide's image ${underline}URL${nounderline} to be downloaded."
+    echo -e "\tO -- Set the download directory."
+    echo -e "\th -- show this message."
+}
+
+while getopts ":O:u:h" opt; do
+    case $opt in
+    O)
+        directoryName="$OPTARG"
+    ;;
+    u)
+        URL="${OPTARG/?cb=*/}"
+    ;;
+    h)
+        usage
+        exit $ec_exitSuccess
+    ;;
+    \?)
+        echo "$scriptName: Error: Invalid option \"-$OPTARG\"." >&2
+        exit $ec_invalidOption
+    ;;
+    :)
+        echo "$scriptName: Error: Option \"-$OPTARG\" requires an argument." >&2
+        exit $ec_optionWithoutArgument
+    ;;
+    esac
+done
+
+if [ "${URL:=unset}" == "unset" ]; then
+    echo "$scriptName: Error: No URL given, use option \"-h\" for help." >&2
+    exit $ec_noURL
+fi
+
+imageLongFile=${URL/http:\/\/image.slidesharecdn.com\/*\/*\//}
+
+# Filtra el "nombre corto" de la imagen, este es un guion seguido del numero posicional de la imagen mas otro guion y la medida del ancho de la imagen con su extension de archivo.
+imageShortFile=$(echo "$imageLongFile" | sed 's/.*.\(.*.\-.*.\-*.\)/\1/')
+
+imageNumber="${imageShortFile/-*/}"
+
+startingImage="$imageNumber"
+
+imageWidth="${imageShortFile/*-/}"
+imageWidth="${imageWidth/.*/}"
+
+slideName="${imageLongFile/-${startingImage}-*/}"
+
+if [ "${directoryName:=unset}" == "unset" ]; then
+    directoryName="$slideName"
+fi
+
+temporalName="$directoryName"
+
+directoryIndex=0
+
+# En caso de que el directorio de descarga ya exista, se le añade un indice al final del nombre hasta obtener un nombre de directorio inexistente.
+while [ -e "$temporalName" ]; do
+    directoryIndex=$((directoryIndex + 1))
+    temporalName="${directoryName}(${directoryIndex})"
+done
+
+directoryName="$temporalName"
+
+mkdir "$directoryName"
+
+ping -c2 image.slidesharecdn.com &> /dev/null
+
+ec_ping=$?
+
+if [ "$ec_ping" -ne 0 ]; then # Se comprueba la disponibilidad del servidor.
+    echo "$scriptName: Warning: image.slidesharecdn.com seems to be offline." >&2
+fi
+
+wget "$URL" -O  "${directoryName}/${imageNumber}.jpg" &> /dev/null
+
+ec_wgetLastDownload=$?
+
+if [ $ec_wgetLastDownload -ne 0 ]; then
+    echo "$scriptName: Error: First image couldn't be downloaded."
+    exit $ec_wgetLastDownload
+fi
+
+urlFirstSegment="${URL/$imageLongFile/}"
+
+while [ $ec_wgetLastDownload -eq 0 ]; do
+    urlSecondSegment="-${imageNumber}-${imageWidth}.jpg"
+
+    URL="${urlFirstSegment}${urlSecondSegment}"
+
+    wget "$URL" -O "${directoryName}/${imageNumber}.jpg" &> /dev/null
+
+    ec_wgetLastDownload=$?
+
+    imageNumber=$((imageNumber+1))
+done
+
+rm "${directoryName}/$((imageNumber-1)).jpg" # Elimina el archivo vacio sobrante, el cual se descarga cuando el servidor responde con un error.
+
+exit $ec_exitSuccess
