@@ -23,11 +23,11 @@ nounderline=$(tput rmul)
 usage()
 {
     echo "Usage:"
-    echo -e "\t$scriptName [-h] -u ${underline}URL${nounderline} [-O ${underline}/download/path${nounderline}]"
+    echo -e "\t$scriptName [-h] -u ${underline}URL${nounderline} [-O ${underline}download_path${nounderline}]"
     echo "Options:"
     echo -e "\tu -- Indicate the starting slide's image ${underline}URL${nounderline} to be downloaded."
-    echo -e "\tO -- Set the download directory."
-    echo -e "\th -- show this message."
+    echo -e "\tO -- Set the ${underline}download_path${nounderline} directory."
+    echo -e "\th -- Show this message."
 }
 
 while getopts ":O:u:h" opt; do
@@ -36,7 +36,7 @@ while getopts ":O:u:h" opt; do
         directoryName="$OPTARG"
     ;;
     u)
-        URL="${OPTARG/?cb=*/}"
+        URL="${OPTARG/\?cb=*/}"
     ;;
     h)
         usage
@@ -70,7 +70,7 @@ startingImage="$imageNumber"
 imageWidth="${imageShortFile/*-/}"
 imageWidth="${imageWidth/.*/}"
 
-slideName="${imageLongFile/-${startingImage}-*/}"
+slideName="${imageLongFile/-${startingImage}-${imageWidth}.jpg/}"
 
 if [ "${directoryName:=unset}" == "unset" ]; then
     directoryName="$slideName"
@@ -95,7 +95,7 @@ ping -c2 image.slidesharecdn.com &> /dev/null
 ec_ping=$?
 
 if [ "$ec_ping" -ne 0 ]; then # Se comprueba la disponibilidad del servidor.
-    echo "$scriptName: Warning: image.slidesharecdn.com seems to be offline." >&2
+    echo "$scriptName: Warning: \"image.slidesharecdn.com\" seems to be offline." >&2
 fi
 
 wget "$URL" -O  "${directoryName}/${imageNumber}.jpg" &> /dev/null
