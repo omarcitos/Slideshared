@@ -15,6 +15,7 @@ ec_exitSuccess=0            # 0: El script se ejecuto correctamente.
 ec_noURL=1                  # 1: No se dio una URL.
 ec_invalidOption=2          # 2: Opcion invalida.
 ec_optionWithoutArgument=3  # 3: Opcion sin argumento:
+ec_invalidURL=4             # 4: URL no valida.
 
 # Modos de escritura
 underline=$(tput smul)
@@ -58,7 +59,22 @@ if [ "${URL:=unset}" == "unset" ]; then
     exit $ec_noURL
 fi
 
-imageLongFile=${URL/http:\/\/image.slidesharecdn.com\/*\/*\//}
+# Se comprueba que el formato de la URL sea correcto.
+case "$URL" in
+http://image.slidesharecdn.com/*)
+    imageLongFile=${URL/http:\/\/image.slidesharecdn.com\/*\/*\//}
+;;
+https://image.slidesharecdn.com/*)
+    imageLongFile=${URL/https:\/\/image.slidesharecdn.com\/*\/*\//}
+;;
+image.slidesharecdn.com/*)
+    imageLongFile=${URL/image.slidesharecdn.com\/*\/*\//}
+;;
+*)
+    echo "$scriptName: Error: Invalid URL format." >&2
+    exit $ec_invalidURL
+;;
+esac
 
 # Filtra el "nombre corto" de la imagen, este es un guion seguido del numero posicional de la imagen mas otro guion y la medida del ancho de la imagen con su extension de archivo.
 imageShortFile=$(echo "$imageLongFile" | sed 's/.*.\(.*.\-.*.\-*.\)/\1/')
