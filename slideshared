@@ -61,13 +61,13 @@ fi
 
 # Se comprueba que el formato de la URL sea correcto.
 case "$URL" in
-http://image.slidesharecdn.com/*)
+http://image.slidesharecdn.com/*/95/*.jpg)
     imageLongFile=${URL/http:\/\/image.slidesharecdn.com\/*\/*\//}
 ;;
-https://image.slidesharecdn.com/*)
+https://image.slidesharecdn.com/*/95/*.jpg)
     imageLongFile=${URL/https:\/\/image.slidesharecdn.com\/*\/*\//}
 ;;
-image.slidesharecdn.com/*)
+image.slidesharecdn.com/*/95/*.jpg)
     imageLongFile=${URL/image.slidesharecdn.com\/*\/*\//}
 ;;
 *)
