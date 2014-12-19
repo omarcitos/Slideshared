@@ -8,18 +8,25 @@
 #   ------
 #   dissid3nt (@geekente)
 #
+
 scriptName="slideshared" # Nombre del script para mostrar en mensajes.
 
 # Exit codes
-ec_exitSuccess=0            # 0: El script se ejecuto correctamente.
-ec_noURL=1                  # 1: No se dio una URL.
-ec_invalidOption=2          # 2: Opcion invalida.
-ec_optionWithoutArgument=3  # 3: Opcion sin argumento:
-ec_invalidURL=4             # 4: URL no valida.
+ec_exitSuccess=0                # 0: El script se ejecuto correctamente.
+ec_noURL=1                      # 1: No se dio una URL.
+ec_invalidOption=2              # 2: Opcion invalida.
+ec_optionWithoutArgument=3      # 3: Opcion sin argumento.
+ec_invalidURL=4                 # 4: URL no valida.
+ec_noArgumentsGivenToScript=5   # 5: No se dieron argumentos al script.
 
 # Modos de escritura
 underline=$(tput smul)
 nounderline=$(tput rmul)
+
+if [ $# -eq 0 ]; then
+    echo "$scriptName: Error: No arguments given, try \"$scriptName -h\" for help." >&2
+    exit $ec_noArgumentsGivenToScript
+fi
 
 usage()
 {
@@ -55,7 +62,7 @@ while getopts ":O:u:h" opt; do
 done
 
 if [ "${URL:=unset}" == "unset" ]; then
-    echo "$scriptName: Error: No URL given, use option \"-h\" for help." >&2
+    echo "$scriptName: Error: No URL given, try \"$scriptName -h\" for help." >&2
     exit $ec_noURL
 fi
 
