@@ -1,12 +1,14 @@
 #!/bin/bash
 #
-#   Slideshared
+#   Slideshared (Version final en Bash)
 #   -----------
-#   Descarga secuencialmente un grupo de imagenes del sitio slideshared.net
+#   Descarga secuencialmente un grupo de imagenes del sitio "slideshared.net".
 #
 #   Autor
-#   ------
-#   dissid3nt (@geekente)
+#   -----
+#   dissident (@geekente)
+#
+#   Ultima fecha de modificacion: 20/12/2014
 #
 
 scriptName="slideshared" # Nombre del script para mostrar en mensajes.
@@ -105,7 +107,7 @@ directoryIndex=0
 
 # En caso de que el directorio de descarga ya exista, se le añade un indice al final del nombre hasta obtener un nombre de directorio inexistente.
 while [ -e "$temporalName" ]; do
-    directoryIndex=$((directoryIndex + 1))
+    ((directoryIndex++))
     temporalName="${directoryName}(${directoryIndex})"
 done
 
@@ -141,7 +143,7 @@ while [ $ec_wgetLastDownload -eq 0 ]; do
 
     ec_wgetLastDownload=$?
 
-    imageNumber=$((imageNumber+1))
+    ((imageNumber++))
 done
 
 rm "${directoryName}/$((imageNumber-1)).jpg" # Elimina el archivo vacio sobrante, el cual se descarga cuando el servidor responde con un error.
